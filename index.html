@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Fun Facts - Cyber Matrix</title>
+    <style>
+        :root {
+            --bg-color: #0b0c16;
+            --surface-card: #131526;
+            --surface-inner: #1a1d33;
+            --primary-cyan: #4deeea;
+            --primary-pink: #f000ff;
+            --text-main: #ffffff;
+            --text-muted: #5e6587;
+            --danger: #ff3838;
+            --success: #00ff66;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: var(--text-main);
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .phone-container {
+            width: 100%;
+            height: 100%;
+            max-width: 450px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            padding-top: calc(30px + env(safe-area-inset-top));
+            padding-bottom: calc(30px + env(safe-area-inset-bottom));
+        }
+
+        .screen {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            display: none;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .main-title {
+            font-size: 38px;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, var(--primary-cyan) 0%, var(--primary-pink) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 25px;
+        }
+
+        .main-wrapper-card {
+            background-color: var(--surface-card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        .inner-row-card {
+            background-color: var(--surface-inner);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: relative;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        /* MONSTER AUSWAHL SYSTEM */
+        .monster-selection-container {
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            margin-top: 5px;
+            width: 100%;
+        }
+
+        .monster-select-card {
+            flex: 1;
+            background-color: rgba(0, 0, 0, 0.3);
+            border: 2px solid transparent;
+            border-radius: 14px;
+            padding: 12px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .monster-select-card.selected {
+            border-color: var(--primary-pink);
+            background-color: rgba(240, 0, 255, 0.08);
+            box-shadow: 0 0 15px rgba(240, 0, 255, 0.3);
+        }
+
+        .monster-select-name {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            text-align: center;
+        }
+        .monster-select-card.selected .monster-select-name {
+            color: var(--primary-pink);
+        }
+
+        /* GEOMETRISCHE CSS MONSTER (KEINE EMOHIS) */
+        .avatar-base {
+            width: 46px;
+            height: 46px;
+            position: relative;
+            transition: transform 0.1s ease;
+        }
+
+        /* 1. Neon Spike (Scharfe Diamantform) */
+        .avatar-spike {
+            background: linear-gradient(135deg, #ff0055 0%, #7000ff 100%);
+            border-radius: 8px;
+            transform: rotate(45deg);
+            box-shadow: 0 0 10px rgba(255, 0, 85, 0.4);
+        }
+        .avatar-spike::before, .avatar-spike::after {
+            content: ''; position: absolute; width: 6px; height: 6px;
+            background-color: var(--primary-cyan); top: 12px; border-radius: 50%;
+            transform: rotate(-45deg);
+        }
+        .avatar-spike::before { left: 8px; } 
+        .avatar-spike::after { right: 20px; }
+
+        /* 2. Glitch Gorgon (Dreieckiges Schild-Cyberwesen) */
+        .avatar-gorgon {
+            background: linear-gradient(135deg, #00ffaa 0%, #0066ff 100%);
+            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+            box-shadow: 0 0 10px rgba(0, 255, 170, 0.4);
+        }
+        .avatar-gorgon::before, .avatar-gorgon::after {
+            content: ''; position: absolute; width: 8px; height: 4px;
+            background-color: #ffffff; top: 28px; border-radius: 2px;
+        }
+        .avatar-gorgon::before { left: 10px; } 
+        .avatar-gorgon::after { right: 10px; }
+
+        /* 3. Overlord X (Hexagon-Roboterwächter) */
+        .avatar-overlord {
+            background: linear-gradient(135deg, #f000ff 0%, #330066 100%);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            box-shadow: 0 0 10px rgba(240, 0, 255, 0.4);
+        }
+        .avatar-overlord::before {
+            content: ''; position: absolute; width: 22px; height: 4px;
+            background-color: var(--primary-cyan); top: 21px; left: 12px;
+            box-shadow: 0 0 8px var(--primary-cyan);
+            border-radius: 2px;
+        }
+
+        /* SCHADENS-ANIMATION (ROT AUFBLITZEN + SCHÜTTELN) */
+        @keyframes damageShake {
+            0% { transform: translate(0, 0) scale(1); filter: brightness(1) sepia(0) saturate(1); }
+            10% { transform: translate(-8px, 3px) scale(0.95); filter: brightness(2) sepia(1) hue-rotate(-50deg) saturate(5); }
+            30% { transform: translate(6px, -6px) scale(1.05); }
+            50% { transform: translate(-5px, -2px) scale(0.95); }
+            70% { transform: translate(4px, 4px) scale(1.02); }
+            90% { transform: translate(-2px, -1px) scale(0.98); }
+            100% { transform: translate(0, 0) scale(1); filter: brightness(1) sepia(0) saturate(1); }
+        }
+
+        .animate-damage {
+            animation: damageShake 0.6s ease-in-out both;
+        }
+
+        /* SCHÖNES INTERNES CYBER-ALERT OVERLAY (KEIN BROWSER STATISCH-ALERT) */
+        .cyber-alert-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(11, 12, 22, 0.9); z-index: 9999;
+            display: none; justify-content: center; align-items: center;
+            padding: 30px;
+            border-radius: 24px;
+        }
+        .cyber-alert-overlay.active { display: flex; }
+        .cyber-alert-box {
+            background-color: var(--surface-card); border: 2px solid var(--danger);
+            border-radius: 20px; padding: 24px; width: 100%; text-align: center;
+            box-shadow: 0 0 25px rgba(255, 56, 56, 0.4);
+            transform: scale(0.85); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .cyber-alert-overlay.active .cyber-alert-box { transform: scale(1); }
+        .cyber-alert-title { color: var(--danger); font-weight: 800; font-size: 18px; letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase; }
+        .cyber-alert-desc { color: var(--text-main); font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+
+        /* DEKO & LAYOUT */
+        .icon-cross-container {
+            width: 44px; height: 44px; position: relative;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .icon-cross-line1, .icon-cross-line2 { position: absolute; width: 30px; height: 5px; border-radius: 3px; }
+        .icon-cross-line1 { background-color: var(--primary-cyan); transform: rotate(45deg); box-shadow: 0 0 12px var(--primary-cyan); }
+        .icon-cross-line2 { background-color: var(--primary-pink); transform: rotate(-45deg); box-shadow: 0 0 12px var(--primary-pink); }
+
+        .monster-status-text { font-size: 16px; font-weight: 700; margin: 3px 0; display: flex; justify-content: space-between; }
+        .text-cyan { color: var(--primary-cyan); text-shadow: 0 0 8px rgba(77,238,234,0.3); }
+        .text-pink { color: var(--primary-pink); text-shadow: 0 0 8px rgba(240,0,255,0.3); }
+
+        input[type="text"], input[type="number"] {
+            width: 100%; background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-main);
+            padding: 12px; border-radius: 10px; font-size: 14px; outline: none;
+            text-align: center; margin-bottom: 10px;
+        }
+        input[type="text"]:focus, input[type="number"]:focus { border-color: var(--primary-cyan); }
+
+        .tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .player-tag { font-size: 11px; font-weight: 600; padding: 6px 12px; border-radius: 20px; }
+        .tag-cyan { border: 1px solid var(--primary-cyan); color: var(--primary-cyan); }
+        .tag-pink { border: 1px solid var(--primary-pink); color: var(--primary-pink); }
+
+        .btn-action {
+            background-color: transparent; border: 1px solid var(--primary-cyan);
+            color: var(--primary-cyan); padding: 10px 16px; border-radius: 12px;
+            font-size: 13px; font-weight: bold; text-transform: uppercase;
+            cursor: pointer; width: 100%; transition: all 0.2s;
+        }
+        .btn-action:active { background-color: rgba(77, 238, 234, 0.1); }
+        
+        .btn-main-trigger {
+            background: linear-gradient(90deg, var(--primary-cyan) 0%, var(--primary-pink) 100%);
+            color: var(--bg-color); border: none; padding: 16px; border-radius: 16px;
+            font-size: 15px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 1px; cursor: pointer; width: 100%; margin-top: auto;
+            box-shadow: 0 4px 20px rgba(240, 0, 255, 0.3);
+        }
+
+        .question-matrix-box {
+            background-color: var(--surface-inner); border-left: 4px solid var(--primary-cyan);
+            border-radius: 0 14px 14px 0; padding: 16px; font-size: 15px;
+            text-align: center; line-height: 1.4; margin-bottom: 16px;
+        }
+
+        /* KLAR DEFINIERTE SYNC-INDIKATOREN FÜR OBEN/UNTEN */
+        .sort-direction-indicator {
+            text-align: center; font-size: 11px; font-weight: 800;
+            letter-spacing: 2px; padding: 8px; border-radius: 10px;
+            margin: 6px 0; background-color: rgba(0, 0, 0, 0.25);
+        }
+        .indicator-low { color: var(--primary-cyan); border: 1px dashed rgba(77, 238, 234, 0.3); }
+        .indicator-high { color: var(--primary-pink); border: 1px dashed rgba(240, 0, 255, 0.3); }
+
+        .sort-list-wrapper { display: flex; flex-direction: column; gap: 8px; }
+        .sort-node {
+            background-color: var(--surface-inner); border: 1px solid rgba(255,255,255,0.05);
+            padding: 14px 18px; border-radius: 12px; font-weight: 600;
+            display: flex; justify-content: space-between; align-items: center; touch-action: none;
+        }
+        .sort-node.dragging { opacity: 0.4; border-color: var(--primary-pink); }
+        .sort-node-handle { width: 18px; height: 8px; border-top: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted); }
+
+        .report-rows-container { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+        .report-node { display: flex; justify-content: space-between; padding: 10px; font-size: 13px; border-radius: 8px; background-color: rgba(0,0,0,0.15); }
+        .report-node.correct { border-left: 3px solid var(--success); }
+        .report-node.wrong { border-left: 3px solid var(--danger); }
+
+        .leaderboard-grid { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+        .leaderboard-grid th, .leaderboard-grid td { padding: 8px; text-align: left; }
+        .leaderboard-grid th { color: var(--text-muted); text-transform: uppercase; font-size: 10px; }
+        .leaderboard-grid td { border-bottom: 1px solid rgba(255,255,255,0.03); }
+
+        .large-display-value {
+            font-size: 42px; font-weight: 800; text-align: center;
+            color: var(--primary-cyan); margin: 20px 0; text-shadow: 0 0 15px rgba(77,238,234,0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+
+        <div id="cyber-alert" class="cyber-alert-overlay">
+            <div class="cyber-alert-box">
+                <div class="cyber-alert-title">System-Warnung</div>
+                <div class="cyber-alert-desc" id="cyber-alert-msg">Nicht genuegend Operator im System vorhanden.</div>
+                <button class="btn-action" style="border-color: var(--danger); color: var(--danger); margin-top: 5px;" id="cyber-alert-close">Fehler beheben</button>
+            </div>
+        </div>
+
+        <div id="screen-setup" class="screen active">
+            <div class="main-title">Fun Facts</div>
+            <div class="subtitle">Spieler und Boss-Setup</div>
+
+            <div class="main-wrapper-card">
+                <div class="inner-row-card">
+                    <div class="flex-col">
+                        <input type="text" id="setup-player-input" placeholder="Name eingeben" autocomplete="off">
+                        <button class="btn-action" id="setup-add-btn">Spieler hinzufuegen</button>
+                        <div class="tags-container" id="setup-tags-box"></div>
+                    </div>
+                    <div class="icon-cross-container">
+                        <div class="icon-cross-line1"></div>
+                        <div class="icon-cross-line2"></div>
+                    </div>
+                </div>
+
+                <div class="inner-row-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                    <div class="card-heading" style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; text-align: center;">Waehle das Cyber-Monster</div>
+                    <div class="monster-selection-container">
+                        <div class="monster-select-card selected" data-monster="spike" data-hp="25">
+                            <div class="avatar-base avatar-spike"></div>
+                            <span class="monster-select-name">Neon Spike</span>
+                            <span style="font-size: 10px; color: var(--text-muted)">25 HP</span>
+                        </div>
+                        <div class="monster-select-card" data-monster="gorgon" data-hp="35">
+                            <div class="avatar-base avatar-gorgon"></div>
+                            <span class="monster-select-name">Glitch Gorgon</span>
+                            <span style="font-size: 10px; color: var(--text-muted)">35 HP</span>
+                        </div>
+                        <div class="monster-select-card" data-monster="overlord" data-hp="50">
+                            <div class="avatar-base avatar-overlord"></div>
+                            <span class="monster-select-name">Overlord X</span>
+                            <span style="font-size: 10px; color: var(--text-muted)">50 HP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-main-trigger" id="setup-start-game-btn">Kampf beginnen</button>
+        </div>
+
+        <div id="screen-passover" class="screen">
+            <div class="main-title">Matrix-Pass</div>
+            <div class="subtitle">Geraet sicher weiterreichen</div>
+
+            <div class="main-wrapper-card">
+                <div class="inner-row-card" style="justify-content: center; padding: 30px 10px;">
+                    <div class="flex-col" style="text-align: center;">
+                        <div class="card-desc" style="text-transform: uppercase; letter-spacing: 1px;">Naechster Operator:</div>
+                        <div class="large-display-value" id="passover-name-display">OPERATOR</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-main-trigger" id="passover-proceed-btn">Ich bin bereit</button>
+        </div>
+
+        <div id="screen-input" class="screen">
+            <div class="main-title">Eingabe</div>
+            <div class="subtitle" id="input-player-subtitle">Verdeckte Datenermittlung</div>
+
+            <div class="question-matrix-box" id="input-question-box">Fragetext</div>
+
+            <div class="main-wrapper-card">
+                <div class="inner-row-card">
+                    <div class="flex-col">
+                        <div class="card-heading" style="text-align: center; margin-bottom: 12px;">Dein geheimer Wert</div>
+                        <input type="number" id="secret-number-input" min="1" max="100" pattern="[0-9]*" placeholder="Wert von 1 bis 100">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-main-trigger" id="secret-submit-btn">Wert loggen</button>
+        </div>
+
+        <div id="screen-sort" class="screen">
+            <div class="main-title">Sortierung</div>
+            <div class="subtitle">Bringt die Matrix in die richtige Reihenfolge</div>
+
+            <div class="question-matrix-box" id="sort-question-box">Fragetext</div>
+
+            <div class="sort-direction-indicator indicator-low">▲ OBEN: KLEINSTER WERT ▲</div>
+            <div class="sort-list-wrapper" id="sort-nodes-container"></div>
+            <div class="sort-direction-indicator indicator-high">▼ UNTEN: GROESSTER WERT ▼</div>
+
+            <button class="btn-main-trigger" style="margin-top: 15px;" id="sort-finalize-btn">Reihenfolge kalibrieren</button>
+        </div>
+
+        <div id="screen-report" class="screen">
+            <div class="main-title">Bericht</div>
+            <div class="subtitle">Gefechtsauswertung</div>
+
+            <div class="main-wrapper-card" style="gap: 12px;">
+                <div class="inner-row-card" style="justify-content: center; gap: 20px;">
+                    <div class="avatar-base" id="report-monster-avatar-render"></div>
+                    <div class="flex-col">
+                        <div class="monster-status-text">
+                            <span style="color: var(--text-muted); font-size: 13px;">Monster HP:</span>
+                            <span class="text-pink" id="report-boss-hp">35</span>
+                        </div>
+                        <div class="monster-status-text">
+                            <span style="color: var(--text-muted); font-size: 13px;">Team KP:</span>
+                            <span class="text-cyan" id="report-team-kp">30</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-desc" id="combat-log-summary" style="text-align: center; font-weight: bold; color: var(--primary-cyan); min-height: 34px;">Zusammenfassung...</div>
+
+                <div class="report-rows-container" id="report-details-box"></div>
+
+                <div class="inner-row-card" style="flex-direction: column; align-items: stretch; padding: 12px;">
+                    <div class="card-heading" style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; text-align: center;">Bestenliste</div>
+                    <table class="leaderboard-grid">
+                        <thead>
+                            <tr>
+                                <th>Operator</th>
+                                <th style="text-align: right;">Punkte</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-rows"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <button class="btn-main-trigger" id="report-next-round-btn">Naechste Runde</button>
+        </div>
+
+        <div id="screen-gameover" class="screen">
+            <div class="main-title" id="gameover-headline">Terminiert</div>
+            <div class="subtitle">System-Endzustand</div>
+
+            <div class="main-wrapper-card">
+                <div class="inner-row-card" style="justify-content: center; padding: 40px 10px;">
+                    <div class="large-display-value" id="gameover-status-label" style="margin: 0;">DEFEAT</div>
+                </div>
+            </div>
+
+            <button class="btn-main-trigger" id="gameover-restart-btn">Hauptmenue</button>
+        </div>
+
+    </div>
+
+    <script>
+        const questionPool = [
+            "Wie ordentlich bist du? 1=Chaos, 100=Monk",
+            "Wie gut kannst du Geheimnisse bewahren? 1=Offenes Buch, 100=Safe",
+            "Wie sportlich bist du aktiv? 1=Couch-Potato, 100=Olympionik",
+            "Wie gerne stehst du im Rampenlicht? 1=Unsichtbar, 100=Superstar",
+            "Wie hitzkoepfig bist du im Streit? 1=Eisberg, 100=Vulkan",
+            "Wie gut ist dein Orientierungssinn? 1=Verlaufen im Haus, 100=Lebendes GPS",
+            "Wie viel Kaffee/Energie benoetigst du am Tag? 1=Wasser reicht, 100=Dauerkoffein",
+            "Wie risikobereit bist du im Leben? 1=Sicherheitsnetz, 100=Adrenalin-Junkie",
+            "Wie puenktlich bist du normalerweise? 1=Immer zu spaet, 100=Ueberpuenktlich",
+            "Wie gut bist du im Kochen? 1=Wasser brennt an, 100=Sternekoch"
+        ];
+
+        let playerNames = [];
+        let globalScores = {};
+        let teamShieldHP = 30;
+        let cyberBossHP = 25;
+        let selectedMonsterType = "spike";
+        let maxMonsterHP = 25;
+        
+        let currentQuestionText = "";
+        let cycleSubmissions = []; 
+        let trackingPassoverIndex = 0;
+
+        const screenElements = {
+            setup: document.getElementById("screen-setup"),
+            passover: document.getElementById("screen-passover"),
+            input: document.getElementById("screen-input"),
+            sort: document.getElementById("screen-sort"),
+            report: document.getElementById("screen-report"),
+            gameover: document.getElementById("screen-gameover")
+        };
+
+        // SCHÖNES NEON-ALERT SYSTEM STEUERUNG
+        function triggerCyberAlert(msg) {
+            document.getElementById("cyber-alert-msg").textContent = msg;
+            document.getElementById("cyber-alert").classList.add("active");
+        }
+        document.getElementById("cyber-alert-close").addEventListener("click", () => {
+            document.getElementById("cyber-alert").classList.remove("active");
+        });
+
+        function activateScreen(key) {
+            Object.keys(screenElements).forEach(k => {
+                screenElements[k].classList.remove("active");
+            });
+            screenElements[key].classList.add("active");
+        }
+
+        // MONSTER AUSWAHL KLICK-LOGIK
+        const monsterCards = document.querySelectorAll(".monster-select-card");
+        monsterCards.forEach(card => {
+            card.addEventListener("click", () => {
+                monsterCards.forEach(c => c.classList.remove("selected"));
+                card.classList.add("selected");
+                selectedMonsterType = card.dataset.monster;
+                maxMonsterHP = parseInt(card.dataset.hp, 10);
+                cyberBossHP = maxMonsterHP;
+            });
+        });
+
+        document.getElementById("setup-add-btn").addEventListener("click", () => {
+            const field = document.getElementById("setup-player-input");
+            const name = field.value.trim();
+            if (name && !playerNames.includes(name)) {
+                playerNames.push(name);
+                globalScores[name] = 0;
+                field.value = "";
+                refreshSetupTags();
+            }
+        });
+
+        function refreshSetupTags() {
+            const container = document.getElementById("setup-tags-box");
+            container.innerHTML = "";
+            playerNames.forEach((name, index) => {
+                const tag = document.createElement("div");
+                tag.className = "player-tag " + (index % 2 === 0 ? "tag-cyan" : "tag-pink");
+                tag.textContent = name;
+                container.appendChild(tag);
+            });
+        }
+
+        document.getElementById("setup-start-game-btn").addEventListener("click", () => {
+            if (playerNames.length < 2) {
+                // Hier greift die neue schöne Warnmeldung!
+                triggerCyberAlert("Zugriff verweigert! Es werden mindestens 2 Operator benötigt, um die Serververbindung stabil zu halten.");
+                return;
+            }
+            teamShieldHP = 30;
+            cyberBossHP = maxMonsterHP;
+            playerNames.forEach(name => globalScores[name] = 0);
+            initiateNewRound();
+        });
+
+        function initiateNewRound() {
+            const randomIndex = Math.floor(Math.random() * questionPool.length);
+            currentQuestionText = questionPool[randomIndex];
+            cycleSubmissions = [];
+            trackingPassoverIndex = 0;
+            processNextPlayerPassover();
+        }
+
+        function processNextPlayerPassover() {
+            if (trackingPassoverIndex < playerNames.length) {
+                document.getElementById("passover-name-display").textContent = playerNames[trackingPassoverIndex];
+                activateScreen("passover");
+            } else {
+                buildSortScreen();
+            }
+        }
+
+        document.getElementById("passover-proceed-btn").addEventListener("click", () => {
+            document.getElementById("input-question-box").textContent = currentQuestionText;
+            document.getElementById("input-player-subtitle").textContent = "Operator: " + playerNames[trackingPassoverIndex];
+            document.getElementById("secret-number-input").value = "";
+            activateScreen("input");
+        });
+
+        document.getElementById("secret-submit-btn").addEventListener("click", () => {
+            const field = document.getElementById("secret-number-input");
+            let numericalValue = parseInt(field.value, 10);
+
+            if (isNaN(numericalValue) || numericalValue < 1 || numericalValue > 100) {
+                triggerCyberAlert("Datenkorruption verhindert! Die Zahl muss zwingend zwischen 1 und 100 liegen.");
+                return;
+            }
+
+            cycleSubmissions.push({
+                player: playerNames[trackingPassoverIndex],
+                val: numericalValue
+            });
+
+            trackingPassoverIndex++;
+            processNextPlayerPassover();
+        });
+
+        function buildSortScreen() {
+            document.getElementById("sort-question-box").textContent = currentQuestionText;
+            const targetContainer = document.getElementById("sort-nodes-container");
+            targetContainer.innerHTML = "";
+
+            let randomizedNodes = [...cycleSubmissions].sort(() => Math.random() - 0.5);
+
+            randomizedNodes.forEach(item => {
+                const node = document.createElement("div");
+                node.className = "sort-node";
+                node.draggable = true;
+                node.dataset.idName = item.player;
+
+                const nameLabel = document.createElement("span");
+                nameLabel.textContent = item.player;
+                node.appendChild(nameLabel);
+
+                const visuallyHandle = document.createElement("div");
+                visuallyHandle.className = "sort-node-handle";
+                node.appendChild(visuallyHandle);
+
+                targetContainer.appendChild(node);
+            });
+
+            applyDragAndDropEngines();
+            activateScreen("sort");
+        }
+
+        function applyDragAndDropEngines() {
+            const listContainer = document.getElementById("sort-nodes-container");
+            let activeDragElement = null;
+
+            listContainer.addEventListener("dragstart", (e) => {
+                activeDragElement = e.target;
+                e.target.classList.add("dragging");
+            });
+
+            listContainer.addEventListener("dragend", (e) => {
+                e.target.classList.remove("dragging");
+                activeDragElement = null;
+            });
+
+            listContainer.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                const underlyingNode = lookForNextNodeElement(listContainer, e.clientY);
+                if (underlyingNode == null) {
+                    listContainer.appendChild(activeDragElement);
+                } else {
+                    listContainer.insertBefore(activeDragElement, underlyingNode);
+                }
+            });
+
+            listContainer.addEventListener("touchstart", (e) => {
+                const actualNode = e.target.closest(".sort-node");
+                if (!actualNode) return;
+                activeDragElement = actualNode;
+                actualNode.classList.add("dragging");
+            }, { passive: true });
+
+            listContainer.addEventListener("touchmove", (e) => {
+                if (!activeDragElement) return;
+                e.preventDefault();
+                const touchPoint = e.touches[0];
+                const underlyingNode = lookForNextNodeElement(listContainer, touchPoint.clientY);
+                if (underlyingNode == null) {
+                    listContainer.appendChild(activeDragElement);
+                } else {
+                    listContainer.insertBefore(activeDragElement, underlyingNode);
+                }
+            }, { passive: false });
+
+            listContainer.addEventListener("touchend", () => {
+                if (!activeDragElement) return;
+                activeDragElement.classList.remove("dragging");
+                activeDragElement = null;
+            });
+        }
+
+        function lookForNextNodeElement(container, positionY) {
+            const components = [...container.querySelectorAll(".sort-node:not(.dragging)")];
+
+            return components.reduce((closestObject, nodeChild) => {
+                const boundaries = nodeChild.getBoundingClientRect();
+                const currentOffset = positionY - boundaries.top - boundaries.height / 2;
+                if (currentOffset < 0 && currentOffset > closestObject.offset) {
+                    return { offset: currentOffset, element: nodeChild };
+                } else {
+                    return closestObject;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        document.getElementById("sort-finalize-btn").addEventListener("click", () => {
+            const listContainer = document.getElementById("sort-nodes-container");
+            const playerSequenceInUI = [...listContainer.querySelectorAll(".sort-node")].map(node => node.dataset.idName);
+
+            let mathematicallyCorrectSequence = [...cycleSubmissions].sort((alpha, beta) => alpha.val - beta.val);
+            
+            let misplacementCount = 0;
+            let finalReportHTML = "";
+
+            playerSequenceInUI.forEach((pName, uiIndex) => {
+                const primaryData = cycleSubmissions.find(s => s.player === pName);
+                const correctTargetIndex = mathematicallyCorrectSequence.findIndex(s => s.player === pName);
+
+                if (uiIndex === correctTargetIndex) {
+                    globalScores[pName] += 10;
+                    finalReportHTML += `
+                        <div class="report-node correct">
+                            <span>${pName} (Wert: ${primaryData.val})</span>
+                            <span style="color: var(--success);">KORREKT (+10)</span>
+                        </div>`;
+                } else {
+                    misplacementCount++;
+                    finalReportHTML += `
+                        <div class="report-node wrong">
+                            <span>${pName} (Wert: ${primaryData.val})</span>
+                            <span style="color: var(--danger);">FALSCH (Soll: Platz ${correctTargetIndex + 1})</span>
+                        </div>`;
+                }
+            });
+
+            // RENDER MONSTER FÜR DIE ANIMATION
+            const avatarTarget = document.getElementById("report-monster-avatar-render");
+            avatarTarget.className = "avatar-base avatar-" + selectedMonsterType;
+            
+            let visualLogSummary = "";
+            if (misplacementCount === 0) {
+                cyberBossHP -= 12;
+                visualLogSummary = "Perfekte Synchronisation! Kritischer Treffer: Monster verliert 12 HP.";
+            } else {
+                teamShieldHP -= misplacementCount;
+                cyberBossHP -= 3; 
+                visualLogSummary = `${misplacementCount} Fehler gemacht. Barriere verliert ${misplacementCount} KP. Monster erleidet 3 HP Schaden.`;
+            }
+
+            // Schadens-Animation triggern
+            avatarTarget.classList.remove("animate-damage");
+            void avatarTarget.offsetWidth; // CSS-Reflow erzwingen, damit die Animation jedes Mal neu startet
+            avatarTarget.classList.add("animate-damage");
+
+            if (cyberBossHP < 0) cyberBossHP = 0;
+            if (teamShieldHP < 0) teamShieldHP = 0;
+
+            document.getElementById("report-boss-hp").textContent = cyberBossHP;
+            document.getElementById("report-team-kp").textContent = teamShieldHP;
+            document.getElementById("combat-log-summary").textContent = visualLogSummary;
+            document.getElementById("report-details-box").innerHTML = finalReportHTML;
+            
+            buildLeaderboardUI();
+            activateScreen("report");
+        });
+
+        function buildLeaderboardUI() {
+            const bodyRef = document.getElementById("leaderboard-rows");
+            bodyRef.innerHTML = "";
+            
+            let orderedRanking = Object.keys(globalScores).sort((alpha, beta) => globalScores[beta] - globalScores[alpha]);
+            orderedRanking.forEach(name => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${name}</td><td style="text-align: right; font-weight: bold; color: #4deeea;">${globalScores[name]}</td>`;
+                bodyRef.appendChild(row);
+            });
+        }
+
+        document.getElementById("report-next-round-btn").addEventListener("click", () => {
+            if (cyberBossHP <= 0) {
+                triggerTerminalScreen(true);
+            } else if (teamShieldHP <= 0) {
+                triggerTerminalScreen(false);
+            } else {
+                initiateNewRound();
+            }
+        });
+
+        function triggerTerminalScreen(teamWon) {
+            const headline = document.getElementById("gameover-headline");
+            const label = document.getElementById("gameover-status-label");
+
+            if (teamWon) {
+                headline.textContent = "Sieg verzeichnet";
+                label.textContent = "VICTORY";
+                label.style.color = "#4deeea";
+                label.style.textShadow = "0 0 15px rgba(77,238,234,0.6)";
+            } else {
+                headline.textContent = "System-Kollaps";
+                label.textContent = "DEFEAT";
+                label.style.color = "#f000ff";
+                label.style.textShadow = "0 0 15px rgba(240,0,255,0.6)";
+            }
+
+            activateScreen("gameover");
+        }
+
+        document.getElementById("gameover-restart-btn").addEventListener("click", () => {
+            playerNames = [];
+            globalScores = {};
+            document.getElementById("setup-tags-box").innerHTML = "";
+            // Reset Monster selection state
+            monsterCards.forEach(c => c.classList.remove("selected"));
+            monsterCards[0].classList.add("selected");
+            selectedMonsterType = "spike";
+            maxMonsterHP = 25;
+            activateScreen("setup");
+        });
+    </script>
+</body>
+</html>
